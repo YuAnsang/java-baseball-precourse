@@ -2,22 +2,41 @@ package baseball.module;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class BaseBallCalculatorTest {
 
     @DisplayName("야구 계산기가 정확하게 동작하는지 테스트 한다.")
-    @MethodSource
-    @ParameterizedTest
-    public void test_calculator(List<Integer> answer, String input, int expectedStrike, int expectedBall) {
+    @CsvSource(value = {
+            "123:231:0:3",
+            "123:789:0:0",
+            "123:321:1:2",
+            "123:123:3:0",
+            "369:974:0:1",
+            "369:169:2:0",
+            "369:269:2:0",
+            "369:469:2:0",
+            "369:639:1:2",
+            "369:936:0:3",
+            "369:369:3:0",
+            "728:724:2:0",
+            "728:427:1:1",
+            "728:723:2:0",
+            "728:728:3:0",
+    }, delimiter = ':')
+    @ParameterizedTest(name = "[#{index}] answer : {0}, input : {1}, strike : {2}, ball : {3}")
+    public void test_calculator(String answer, String input, int expectedStrike, int expectedBall) {
         // Given
-        BaseBallCalculator calculator = new BaseBallCalculator(answer);
+        List<Integer> answerList = new ArrayList<>();
+        for (String sliced : answer.split("")) {
+            answerList.add(Integer.valueOf(sliced));
+        }
+        BaseBallCalculator calculator = new BaseBallCalculator(answerList);
 
         // When
         calculator.calculate(input);
@@ -27,26 +46,28 @@ class BaseBallCalculatorTest {
         assertThat(calculator.getBall()).isEqualTo(expectedBall);
     }
 
-    @SuppressWarnings("unused")
-    private static Stream<Arguments> test_calculator() {
-        return Stream.of(
-                Arguments.of(Arrays.asList(1, 2, 3), "231", 0, 3),
-                Arguments.of(Arrays.asList(1, 2, 3), "789", 0, 0),
-                Arguments.of(Arrays.asList(1, 2, 3), "321", 1, 2),
-                Arguments.of(Arrays.asList(1, 2, 3), "123", 3, 0),
-                Arguments.of(Arrays.asList(3, 6, 9), "974", 0, 1),
-                Arguments.of(Arrays.asList(3, 6, 9), "693", 0, 3),
-                Arguments.of(Arrays.asList(3, 6, 9), "169", 2, 0),
-                Arguments.of(Arrays.asList(3, 6, 9), "269", 2, 0),
-                Arguments.of(Arrays.asList(3, 6, 9), "469", 2, 0),
-                Arguments.of(Arrays.asList(3, 6, 9), "639", 1, 2),
-                Arguments.of(Arrays.asList(3, 6, 9), "936", 0, 3),
-                Arguments.of(Arrays.asList(3, 6, 9), "369", 3, 0),
-                Arguments.of(Arrays.asList(7, 2, 8), "724", 2, 0),
-                Arguments.of(Arrays.asList(7, 2, 8), "427", 1, 1),
-                Arguments.of(Arrays.asList(7, 2, 8), "723", 2, 0),
-                Arguments.of(Arrays.asList(7, 2, 8), "728", 3, 0)
-        );
-    }
+    @DisplayName("clear 메서드 동작 테스트")
+    @Test
+    public void test_clear() {
+        // Given
+        List<Integer> numbers = new ArrayList<>();
+        numbers.add(1);
+        numbers.add(2);
+        numbers.add(3);
+        BaseBallCalculator calculator = new BaseBallCalculator(numbers);
 
+        // When
+        calculator.calculate("132");
+
+        // Then
+        assertThat(calculator.getStrike()).isNotZero();
+        assertThat(calculator.getBall()).isNotZero();
+
+        // When
+        calculator.clear();
+
+        // Then
+        assertThat(calculator.getStrike()).isZero();
+        assertThat(calculator.getBall()).isZero();
+    }
 }
